@@ -42,11 +42,22 @@ async def create_invitation(inviter_id: int, invitee_email: str, db: Session) ->
 
 
 async def accept_invitation(code: str, new_user_id: int, db: Session):
+    """
+    Mark invitation used, record who accepted it, and give inviter 1 credit.
+    Raises ValueError if:
+    - code is invalid or already used
+    - the new user's email doesn't match the invitation
+    """
     inv = db.query(Invitation).filter(Invitation.code == code).first()
     if not inv:
         raise ValueError("Invalid invitation code.")
     if inv.used:
         raise ValueError("Invitation already used.")
+
+    # Fetch the new user and validate email
+    new_user = db.query(User).filter(User.id == new_user_id).first()
+    if new_user.email.lower() != inv.invited_email.lower():
+        raise ValueError("Invitation code does not match this signup email.")
 
     # Mark used and record acceptance
     inv.used = True
@@ -59,8 +70,9 @@ async def accept_invitation(code: str, new_user_id: int, db: Session):
 
     # Notify inviter by email
     body = (
-        f"Greetings! Your invitation code {code} was just used by a new member.\n"
+        f"Greetings! Your invitation code {code} was used by {new_user.email}.\n"
         f"You have earned 1 credit. Total credits: {inviter.credits}."
     )
     await send_email("Your invitation was accepted!", inviter.email, body)
+
     return inviter.id

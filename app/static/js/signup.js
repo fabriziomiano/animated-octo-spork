@@ -2,19 +2,19 @@
 import { showAlert, toggleSpinner } from "./utils.js";
 
 // Debug: confirm the module loaded
-console.log("► signup.js loaded");
+console.log("signup.js loaded");
 
 export function initSignup() {
-  console.log("   initSignup() running");
+  console.log("initSignup() running");
   const form = document.getElementById("signup-form");
   if (!form) {
-    console.warn("   no #signup-form found");
+    console.warn("no #signup-form found");
     return;
   }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    console.log("   signup form submit");
+    console.log("signup form submit");
 
     const btn = form.querySelector("button");
     toggleSpinner(btn, true);
@@ -33,7 +33,7 @@ export function initSignup() {
         body: JSON.stringify(data),
       });
       const json = await res.json();
-      console.log("   Signup response:", res.status, json);
+      console.log("Signup response:", res.status, json);
 
       if (!res.ok) {
         if (Array.isArray(json.detail)) throw json.detail;
@@ -42,9 +42,9 @@ export function initSignup() {
 
       showAlert("Signup successful! Redirecting…", "success");
       form.reset();
-      setTimeout(() => (window.location.href = "/"), 3000);
+      setTimeout(() => (window.location.href = "/invite"), 500);
     } catch (err) {
-      console.error("   Signup error:", err);
+      console.error("Signup error:", err);
       if (Array.isArray(err)) {
         showAlert(err.map((e) => e.msg).join("<br>"));
       } else {
