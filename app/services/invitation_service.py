@@ -38,15 +38,17 @@ async def create_invitation(inviter_id: int, invitee_email: str, db: Session) ->
         f"Validate your invite and sign up here:\n{link}"
     )
     await send_email("You’re invited to join CrediMate!", invitee_email, body)
+
     return code
 
 
 async def accept_invitation(code: str, new_user_id: int, db: Session):
     """
-    Mark invitation used, record who accepted it, and give inviter 1 credit.
+    Mark invitation used, record who accepted it, link inviter->invitee,
+    and give inviter 1 credit.
     Raises ValueError if:
-    - code is invalid or already used
-    - the new user's email doesn't match the invitation
+      - code is invalid or already used
+      - the new user's email doesn't match the invitation
     """
     inv = db.query(Invitation).filter(Invitation.code == code).first()
     if not inv:
@@ -55,23 +57,29 @@ async def accept_invitation(code: str, new_user_id: int, db: Session):
         raise ValueError("Invitation already used.")
 
     # Fetch the new user and validate email
-    new_user = db.query(User).filter(User.id == new_user_id).first()
+    new_user = db.query(User).get(new_user_id)
+    if not new_user:
+        raise ValueError("New user not found.")
     if new_user.email.lower() != inv.invited_email.lower():
         raise ValueError("Invitation code does not match this signup email.")
 
-    # Mark used and record acceptance
+    # Link the new user back to their inviter
+    new_user.invited_by_id = inv.inviter_id
+
+    # Mark the invitation used and record who accepted it
     inv.used = True
     inv.invited_user_id = new_user_id
 
     # Award credit to inviter
-    inviter = db.query(User).filter(User.id == inv.inviter_id).first()
+    inviter = db.query(User).get(inv.inviter_id)
     inviter.credits += 1
+
     db.commit()
 
     # Notify inviter by email
     body = (
-        f"Greetings! Your invitation code {code} was used by {new_user.email}.\n"
-        f"You have earned 1 credit. Total credits: {inviter.credits}."
+        f"Greetings! {new_user.email} has used your invitation code {code}.\n"
+        f"You have earned +1 credit and now have {inviter.credits} credits."
     )
     await send_email("Your invitation was accepted!", inviter.email, body)
 

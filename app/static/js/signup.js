@@ -12,6 +12,10 @@ export function initSignup() {
     return;
   }
 
+  // Capture invitation code from query string if present
+  const params = new URLSearchParams(window.location.search);
+  const invitationCode = params.get("code");
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     console.log("signup form submit");
@@ -25,6 +29,11 @@ export function initSignup() {
       email: document.getElementById("signup-email").value.trim(),
       password: document.getElementById("signup-password").value,
     };
+
+    // If we came from an invitation link, include the code
+    if (invitationCode) {
+      data.invitation_code = invitationCode;
+    }
 
     try {
       const res = await fetch("/api/signup", {

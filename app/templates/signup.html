@@ -8,6 +8,13 @@ block content %}
       <div class="mb-3">
         <label for="signup-name" class="form-label">Name</label>
         <input
+          type="hidden"
+          name="invitation_code"
+          id="invitation-code"
+          value="{{ request.query_params.code or '' }}"
+        />
+
+        <input
           type="text"
           id="signup-name"
           class="form-control bg-dark text-light border-light"
