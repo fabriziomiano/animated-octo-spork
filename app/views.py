@@ -12,81 +12,93 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
+def _get_user_or_none(
+    session_token: str = Cookie(None),
+    db: Session = Depends(get_db),
+) -> User | None:
+    """
+    Helper to return the current_user or None (no exception).
+    """
+    try:
+        return get_current_user(session_token=session_token, db=db)
+    except HTTPException:
+        return None
+
+
 # Landing page – only greeting
 @router.get("/", response_class=HTMLResponse)
 def landing_page(
     request: Request,
-    session_token: str = Cookie(None),
-    db: Session = Depends(get_db),
+    user: User | None = Depends(_get_user_or_none),
 ):
-    user_name = None
-    try:
-        user: User = get_current_user(session_token=session_token, db=db)
-        user_name = user.name
-    except HTTPException:
-        pass
-
     return templates.TemplateResponse(
         "landing.html",
         {
             "request": request,
-            "user_name": user_name,
+            "user": user,
         },
     )
 
 
-# Login page
+# Login page (public)
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
+# Logout endpoint – clears cookie, redirects home
 @router.get("/logout")
 def logout_page(session_token: str = Cookie(None)):
-    """
-    Clear the session cookie and redirect back to the landing page (guest view).
-    """
     from app.api.deps import sessions
 
     if session_token and session_token in sessions:
         sessions.pop(session_token)
-    # Build a redirect response to "/"
+
     response = RedirectResponse(url="/", status_code=302)
     response.delete_cookie("session_token")
     return response
 
 
-# Signup page
+# Signup page (public)
 @router.get("/signup", response_class=HTMLResponse)
 def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
 
-# Invite page (protected, redirects if not logged in)
+# Invite page (protected)
 @router.get("/invite", response_class=HTMLResponse)
 def invite_page(
     request: Request,
-    session_token: str = Cookie(None),
-    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    try:
-        current_user: User = get_current_user(session_token=session_token, db=db)
-    except HTTPException:
-        return RedirectResponse(url="/login", status_code=302)
-
     return templates.TemplateResponse(
         "invite.html",
         {
             "request": request,
-            "user_name": current_user.name,
+            "user": current_user,
         },
     )
 
 
-# Invitation validation page
+# Invitation validation page (public)
 @router.get("/invitation/validate", response_class=HTMLResponse)
 def invitation_validate_page(request: Request):
     return templates.TemplateResponse(
         "invitation_validate.html",
         {"request": request},
+    )
+
+
+# **New** Profile page (protected)
+@router.get("/profile", response_class=HTMLResponse)
+def profile_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    return templates.TemplateResponse(
+        "profile.html",
+        {
+            "request": request,
+            "user": current_user,
+        },
     )

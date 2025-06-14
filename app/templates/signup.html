@@ -1,81 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Sign Up – MyApp</title>
-    <!-- Bootswatch Darkly theme -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootswatch@5/dist/darkly/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body class="bg-dark text-light">
-    <nav class="navbar navbar-dark bg-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/">MyApp</a>
+<!-- app/templates/signup.html -->
+{% extends "base.html" %} {% block title %}Sign Up – MyApp{% endblock %} {%
+block content %}
+<div class="card bg-secondary text-light">
+  <div class="card-body">
+    <h3 class="text-center mb-4">Sign Up</h3>
+    <form id="signup-form">
+      <div class="mb-3">
+        <label for="signup-name" class="form-label">Name</label>
+        <input
+          type="text"
+          id="signup-name"
+          class="form-control bg-dark text-light border-light"
+          required
+        />
       </div>
-    </nav>
-
-    <div class="container py-5" style="max-width: 400px">
-      <!-- Alert container: showAlert() injects here -->
-      <div id="alert-container"></div>
-
-      <div class="card bg-secondary text-light">
-        <div class="card-body">
-          <h3 class="text-center mb-4">Sign Up</h3>
-
-          <form id="signup-form">
-            <div class="mb-3">
-              <label for="signup-name" class="form-label">Name</label>
-              <input
-                type="text"
-                id="signup-name"
-                class="form-control bg-dark text-light border-light"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="signup-email" class="form-label">Email</label>
-              <input
-                type="email"
-                id="signup-email"
-                class="form-control bg-dark text-light border-light"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="signup-password" class="form-label">Password</label>
-              <input
-                type="password"
-                id="signup-password"
-                class="form-control bg-dark text-light border-light"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              class="btn btn-primary w-100"
-              data-original-text="Sign Up"
-            >
-              <span
-                class="spinner-border spinner-border-sm text-light d-none"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              <span class="btn-text">Sign Up</span>
-            </button>
-          </form>
-        </div>
+      <div class="mb-3">
+        <label for="signup-email" class="form-label">Email</label>
+        <input
+          type="email"
+          id="signup-email"
+          class="form-control bg-dark text-light border-light"
+          required
+        />
       </div>
-    </div>
-
-    <!-- Bootstrap JS bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-      console.log("► signup.html loaded");
-    </script>
-    <script type="module" src="/static/js/signup.js"></script>
-  </body>
-</html>
+      <div class="mb-3">
+        <label for="signup-password" class="form-label">Password</label>
+        <input
+          type="password"
+          id="signup-password"
+          class="form-control bg-dark text-light border-light"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        data-original-text="Sign Up"
+      >
+        <span
+          class="spinner-border spinner-border-sm text-light d-none"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        <span class="btn-text">Sign Up</span>
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script type="module" src="/static/js/signup.js"></script>
+{% endblock %}
