@@ -25,7 +25,7 @@ def _get_user_or_none(
         return None
 
 
-# Landing page – only greeting
+# Landing page - only greeting
 @router.get("/", response_class=HTMLResponse)
 def landing_page(
     request: Request,
@@ -46,7 +46,7 @@ def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-# Logout endpoint – clears cookie, redirects home
+# Logout endpoint - clears cookie, redirects home
 @router.get("/logout")
 def logout_page(session_token: str = Cookie(None)):
     from app.api.deps import sessions

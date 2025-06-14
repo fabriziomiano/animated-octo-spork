@@ -1,4 +1,4 @@
-# Invite App
+# CrediMate
 
 A simple **FastAPI** + **SQLite** application that lets registered users invite others via email. Each successful invite grants the inviter credits. Built with modular routers, Jinja2 templates, and Bootstrap 5 for a clean, responsive UI.
 

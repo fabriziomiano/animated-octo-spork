@@ -1,10 +1,9 @@
-<!-- app/templates/base.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{% block title %}MyApp{% endblock %}</title>
+    <title>{% block title %}CrediMate{% endblock %}</title>
     <!-- Bootswatch Darkly theme -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootswatch@5/dist/darkly/bootstrap.min.css"
@@ -15,7 +14,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="/">MyApp</a>
+        <a class="navbar-brand" href="/">CrediMate</a>
         <div class="d-flex">
           {% if user %}
           <a class="btn btn-outline-light me-2" href="/profile">Profile</a>

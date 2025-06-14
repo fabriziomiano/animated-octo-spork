@@ -28,8 +28,8 @@ async def create_invitation(inviter_id: int, invite_email: str, db: Session) -> 
     # db.commit()
 
     link = f"http://localhost:8000/signup?invite={code}"
-    subject = "You're invited to MyApp!"
-    body = f"Hi,\n\nPlease join MyApp using this link (expires in {INVITE_EXPIRE_HOURS} hours):\n\n{link}"
+    subject = "You're invited to CrediMate!"
+    body = f"Hi,\n\nPlease join CrediMate using this link (expires in {INVITE_EXPIRE_HOURS} hours):\n\n{link}"
 
     await send_email(subject=subject, recipients=[invite_email], body=body)
     return code

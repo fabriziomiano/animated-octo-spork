@@ -1,0 +1,9 @@
+{% extends "base.html" %} {% block title %}Your Profile - CrediMate{% endblock
+%} {% block content %}
+<h2>User Profile</h2>
+<ul class="list-group">
+  <li class="list-group-item"><strong>Name:</strong> {{ user.name }}</li>
+  <li class="list-group-item"><strong>Email:</strong> {{ user.email }}</li>
+  <li class="list-group-item"><strong>Credits:</strong> {{ user.credits }}</li>
+</ul>
+{% endblock %}
