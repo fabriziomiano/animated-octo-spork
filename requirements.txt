@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+passlib[bcrypt]
+itsdangerous
+jinja2
+fastapi-mail
+psycopg2-binary
+python-dotenv
