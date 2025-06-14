@@ -21,7 +21,7 @@ def seed_db():
 
     db = SessionLocal()
     try:
-        if not db.query(User).filter_by(email="admin@example.com").first():
+        if not db.query(User).filter_by(email=ADMIN_EMAIL).first():
             user = User(
                 name=ADMIN_NAME,
                 email=ADMIN_EMAIL,
