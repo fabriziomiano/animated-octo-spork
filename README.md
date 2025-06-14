@@ -25,32 +25,30 @@ A simple **FastAPI** + **SQLite** application that lets registered users invite 
 
 ## 📂 Project Structure
 
-```
-├── app/
-│ ├── api/
-│ │ ├── auth.py
-│ │ ├── invite.py
-│ │ ├── user.py
-│ │ └── deps.py
-│ ├── db.py
-│ ├── main.py
-│ ├── models.py
-│ ├── security.py
-│ ├── seed.py
-│ ├── templates/
-│ │ ├── base.html
-│ │ ├── landing.html
-│ │ └── profile.html
-│ └── static/
-│ ├── css/
-│ │ └── styles.css
-│ └── js/
-│ └── main.js
-├── .env.example
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
+    ├── app/
+    │ ├── api/
+    │ │ ├── auth.py
+    │ │ ├── invite.py
+    │ │ ├── user.py
+    │ │ └── deps.py
+    │ ├── db.py
+    │ ├── main.py
+    │ ├── models.py
+    │ ├── security.py
+    │ ├── seed.py
+    │ ├── templates/
+    │ │ ├── base.html
+    │ │ ├── landing.html
+    │ │ └── profile.html
+    │ └── static/
+    │ ├── css/
+    │ │ └── styles.css
+    │ └── js/
+    │ └── main.js
+    ├── .env.example
+    ├── .gitignore
+    ├── requirements.txt
+    └── README.md
 
 ## ⚙️ Setup & Installation
 
@@ -79,8 +77,6 @@ A simple **FastAPI** + **SQLite** application that lets registered users invite 
 
    ```bash
    cp .env.example .env
-
-   # then edit .env with your settings (DB_URL, SMTP creds, etc.)
    ```
 
 5. **Seed the database**
@@ -91,10 +87,10 @@ A simple **FastAPI** + **SQLite** application that lets registered users invite 
 
 ## 🏃‍♂️ Running Locally
 
-    ```bash
-    uvicorn app.main:app --reload
-    Open your browser at http://127.0.0.1:8000.
-    ```
+```bash
+uvicorn app.main:app --reload
+Open your browser at http://127.0.0.1:8000.
+```
 
 ## 🐳 Docker & PostgreSQL (optional)
 
