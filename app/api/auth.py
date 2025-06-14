@@ -32,32 +32,39 @@ async def signup(
     response: Response,
     db: Session = Depends(get_db),
 ):
-    # -- DEBUG LOGGING --
-    print("[SIGNUP] payload:", req)
-
-    # Check email uniqueness
-    existing = db.query(User).filter(User.email == req.email).first()
-    if existing:
+    # Check email uniqueness up‐front
+    if db.query(User).filter(User.email == req.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
     # Create user
     hashed = hash_password(req.password)
     user = User(name=req.name, email=req.email, hashed_password=hashed)
     db.add(user)
-    db.commit()
-    db.refresh(user)
-    print(f"[SIGNUP] created user id={user.id}, email={user.email}")
+    try:
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        # In the unlikely race where someone else just registered the same email:
+        raise HTTPException(status_code=400, detail="Email already registered")
 
     # Process invitation credit if provided
     if req.invitation_code:
         try:
             await accept_invitation(req.invitation_code, user.id, db)
         except ValueError as e:
+            # Roll back invitation credit logic only
             raise HTTPException(status_code=400, detail=str(e))
 
     # Auto-login: create session & set cookie
     token = create_session(user.id)
-    response.set_cookie(key="session_token", value=token, httponly=True)
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        secure=True,  # only over HTTPS in prod
+        samesite="lax",  # mitigate CSRF
+    )
 
     return {"message": "User created and logged in", "user_id": user.id}
 

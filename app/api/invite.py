@@ -25,7 +25,9 @@ async def invite_user(
     Create a new invitation code for the given email.
     """
     try:
-        code = await create_invitation(current_user.id, req.email, db)
+        code = await create_invitation(
+            current_user.id, current_user.name, req.email, db
+        )
     except ValueError as e:
         # e.g. "already invited" or "already registered"
         raise HTTPException(status_code=400, detail=str(e))

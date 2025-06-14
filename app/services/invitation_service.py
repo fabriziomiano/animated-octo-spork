@@ -5,7 +5,9 @@ from app.models import Invitation, User
 from app.email_utils import send_email
 
 
-async def create_invitation(inviter_id: int, invitee_email: str, db: Session) -> str:
+async def create_invitation(
+    inviter_id: int, name: str, invitee_email: str, db: Session
+) -> str:
     # 1. Prevent inviting a registered user
     if db.query(User).filter(User.email == invitee_email).first():
         raise ValueError("Cannot invite an already registered user.")
@@ -34,7 +36,7 @@ async def create_invitation(inviter_id: int, invitee_email: str, db: Session) ->
     # 4. Send invitation email
     link = f"http://localhost:8000/invitation/validate?code={code}"
     body = (
-        f"Hello! You have been invited to join CrediMate by user {inviter_id}.\n"
+        f"Hello! You have been invited to join CrediMate by user {name}.\n"
         f"Validate your invite and sign up here:\n{link}"
     )
     await send_email("You’re invited to join CrediMate!", invitee_email, body)
