@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db, get_current_user
-from app.models import User
+from app.models import Invitation, User
 from app.services.invitation_service import create_invitation
 
 router = APIRouter()
@@ -22,13 +22,25 @@ async def invite_user(
     db: Session = Depends(get_db),
 ):
     """
-    Expects JSON: { "email": "invitee@example.com" }
-    Only authenticated users may call this.
+    Create a new invitation code for the given email.
     """
     try:
         code = await create_invitation(current_user.id, req.email, db)
     except ValueError as e:
-        # Already invited
+        # e.g. "already invited" or "already registered"
         raise HTTPException(status_code=400, detail=str(e))
 
     return {"message": "Invitation sent", "code": code}
+
+
+@router.get("/invitation/validate")
+def validate_invitation(
+    code: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Check whether an invitation code exists and is still unused.
+    Returns {"valid": true} or {"valid": false}.
+    """
+    inv = db.query(Invitation).filter(Invitation.code == code).first()
+    return {"valid": bool(inv and not inv.used)}

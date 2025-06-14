@@ -1,15 +1,12 @@
-# app/email_utils.py
-
-import os
+# ------------------ app/email_utils.py ------------------
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from dotenv import load_dotenv
-from typing import List
+import os
 
-from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
-from pydantic import EmailStr, ValidationError, parse_obj_as
-
-# Load environment variables from .env
+# Load .env
 load_dotenv()
 
+# Build connection config
 conf = ConnectionConfig(
     MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
@@ -21,25 +18,15 @@ conf = ConnectionConfig(
     USE_CREDENTIALS=True,
 )
 
-print(conf.MAIL_USERNAME)
-print(os.getenv("MAIL_PASSWORD"))
-print(conf.MAIL_FROM)
-print(conf.MAIL_PORT)
-print(conf.MAIL_SERVER)
-print(conf.MAIL_STARTTLS)
-print(conf.MAIL_SSL_TLS)
-
+# FastMail instance
 fm = FastMail(conf)
 
 
-async def send_email(subject: str, recipients: List[str], body: str):
+async def send_email(subject: str, email: str, body: str):
     """
-    Send an email.
+    Send an email asynchronously via configured SMTP.
     """
     message = MessageSchema(
-        subject=subject,
-        recipients=recipients,
-        body=body,
-        subtype="plain",
+        subject=subject, recipients=[email], body=body, subtype="plain"
     )
     await fm.send_message(message)

@@ -14,9 +14,9 @@ def seed_db():
     try:
         if not db.query(User).filter_by(email="admin@example.com").first():
             user = User(
+                name="Admin",
                 email="admin@example.com",
                 hashed_password=pwd_context.hash("admin123"),
-                is_verified=True,
                 credits=100,
             )
             db.add(user)

@@ -9,6 +9,7 @@ import secrets
 from app.api.deps import get_db, create_session
 from app.models import User
 from app.security import hash_password, verify_password
+from app.services.invitation_service import accept_invitation
 
 router = APIRouter()
 
@@ -17,6 +18,7 @@ class SignupRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
+    invitation_code: str | None = None
 
 
 class TwoFARequest(BaseModel):
@@ -25,13 +27,13 @@ class TwoFARequest(BaseModel):
 
 
 @router.post("/signup", status_code=201)
-def signup(
+async def signup(
     req: SignupRequest,
     response: Response,
     db: Session = Depends(get_db),
 ):
     # -- DEBUG LOGGING --
-    print(">> [SIGNUP] payload:", req)
+    print("[SIGNUP] payload:", req)
 
     # Check email uniqueness
     existing = db.query(User).filter(User.email == req.email).first()
@@ -44,15 +46,19 @@ def signup(
     db.add(user)
     db.commit()
     db.refresh(user)
+    print(f"[SIGNUP] created user id={user.id}, email={user.email}")
 
-    # -- CONFIRM TO LOGS --
-    print(f">> [SIGNUP] created user id={user.id}, email={user.email}")
+    # Process invitation credit if provided
+    if req.invitation_code:
+        try:
+            await accept_invitation(req.invitation_code, user.id, db)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     # Auto-login: create session & set cookie
     token = create_session(user.id)
     response.set_cookie(key="session_token", value=token, httponly=True)
 
-    # Return the new user’s id so you can see it in the network tab
     return {"message": "User created and logged in", "user_id": user.id}
 
 
@@ -61,15 +67,12 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    print(form_data)
     user = db.query(User).filter(User.email == form_data.username).first()
-    print(user)
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     twofa_code = secrets.token_hex(3)
     user.two_factor_secret = twofa_code
-
     db.commit()
 
     return {

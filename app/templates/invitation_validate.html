@@ -1,11 +1,46 @@
-{% extends "base.html" %} {% block title %}Invitation Status - CrediMate{%
+{% extends "base.html" %} {% block title %}Invitation Status – CrediMate{%
 endblock %} {% block content %}
-<div class="card text-center">
+<div class="card text-center mx-auto" style="max-width: 400px">
   <div class="card-body">
     <h4 class="card-title mb-4">Invitation Status</h4>
-    <div id="status-message" class="fs-5"></div>
+    <div id="status-message"></div>
+
+    <!-- This link/button only shows if the JS determined `valid === true` -->
+    <a id="register-btn" href="#" class="btn btn-primary mt-3 d-none">
+      Sign Up
+    </a>
   </div>
 </div>
 {% endblock %} {% block scripts %}
-<script type="module" src="/static/js/invitation_validate.js"></script>
+<script type="module">
+  document.addEventListener("DOMContentLoaded", async () => {
+    const statusEl = document.getElementById("status-message");
+    const registerBtn = document.getElementById("register-btn");
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (!code) {
+      statusEl.innerHTML = `<span class="text-danger">No code provided.</span>`;
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `/api/invitation/validate?code=${encodeURIComponent(code)}`
+      );
+      const { valid } = await res.json();
+
+      if (valid) {
+        statusEl.innerHTML = `<span class="text-success">Invite is valid! You can now register.</span>`;
+        // Show the sign-up button, passing along the code
+        registerBtn.href = `/signup?code=${encodeURIComponent(code)}`;
+        registerBtn.classList.remove("d-none");
+      } else {
+        statusEl.innerHTML = `<span class="text-danger">Invalid or used code.</span>`;
+      }
+    } catch {
+      statusEl.innerHTML = `<span class="text-danger">Error checking code.</span>`;
+    }
+  });
+</script>
 {% endblock %}

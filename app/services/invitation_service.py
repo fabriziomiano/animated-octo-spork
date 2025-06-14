@@ -1,69 +1,66 @@
 import uuid
-import datetime as dt
+from datetime import datetime
 from sqlalchemy.orm import Session
 from app.models import Invitation, User
 from app.email_utils import send_email
 
-# Invitations expire after 48 hours
-INVITE_EXPIRE_HOURS = 48
 
+async def create_invitation(inviter_id: int, invitee_email: str, db: Session) -> str:
+    # 1. Prevent inviting a registered user
+    if db.query(User).filter(User.email == invitee_email).first():
+        raise ValueError("Cannot invite an already registered user.")
 
-async def create_invitation(inviter_id: int, invite_email: str, db: Session) -> str:
-    """
-    Create an invitation and send the email.
-    Raises ValueError if an unused invite already exists.
-    Returns the code.
-    """
-    existing = (
-        db.query(Invitation)
-        .filter(Invitation.invited_email == invite_email, Invitation.used == False)
-        .first()
-    )
-    if existing:
-        raise ValueError("User already invited")
+    # 2. Deactivate any existing active invites for this inviter + email
+    db.query(Invitation).filter(
+        Invitation.inviter_id == inviter_id,
+        Invitation.invited_email == invitee_email,
+        Invitation.used == False,
+    ).update({Invitation.used: True}, synchronize_session=False)
+    db.commit()
 
+    # 3. Generate & store the new code
     code = uuid.uuid4().hex
-    # inv = Invitation(code=code, invited_email=invite_email, inviter_id=inviter_id)
-    # db.add(inv)
-    # db.commit()
+    invitation = Invitation(
+        code=code,
+        invited_email=invitee_email,
+        inviter_id=inviter_id,
+        used=False,
+        created_at=datetime.utcnow(),
+        invited_user_id=None,
+    )
+    db.add(invitation)
+    db.commit()
 
-    link = f"http://localhost:8000/signup?invite={code}"
-    subject = "You're invited to CrediMate!"
-    body = f"Hi,\n\nPlease join CrediMate using this link (expires in {INVITE_EXPIRE_HOURS} hours):\n\n{link}"
-
-    await send_email(subject=subject, recipients=[invite_email], body=body)
+    # 4. Send invitation email
+    link = f"http://localhost:8000/invitation/validate?code={code}"
+    body = (
+        f"Hello! You have been invited to join CrediMate by user {inviter_id}.\n"
+        f"Validate your invite and sign up here:\n{link}"
+    )
+    await send_email("You’re invited to join CrediMate!", invitee_email, body)
     return code
 
 
-def validate_invitation_code(code: str, db: Session) -> bool:
-    """
-    Returns True if the code exists, is unused, and not expired.
-    """
+async def accept_invitation(code: str, new_user_id: int, db: Session):
     inv = db.query(Invitation).filter(Invitation.code == code).first()
-    if not inv or inv.used:
-        return False
-    if dt.now(dt.datetime.timezone.utc) > inv.created_at + dt.timedelta(
-        hours=INVITE_EXPIRE_HOURS
-    ):
-        return False
-    return True
+    if not inv:
+        raise ValueError("Invalid invitation code.")
+    if inv.used:
+        raise ValueError("Invitation already used.")
 
-
-def mark_invitation_used(code: str, db: Session, credit_amount: int = 10):
-    """
-    Mark the invitation as used and credit the inviter.
-    """
-    inv = db.query(Invitation).filter(Invitation.code == code).first()
-    if not inv or inv.used:
-        raise ValueError("Invalid or already used invitation code")
-
-    # Check expiration
-    if dt.now(dt.datetime.timezone.utc) > inv.created_at + dt.timedelta(
-        hours=INVITE_EXPIRE_HOURS
-    ):
-        raise ValueError("Invitation code has expired")
-
+    # Mark used and record acceptance
     inv.used = True
-    inviter = db.query(User).get(inv.inviter_id)
-    inviter.credits += credit_amount
+    inv.invited_user_id = new_user_id
+
+    # Award credit to inviter
+    inviter = db.query(User).filter(User.id == inv.inviter_id).first()
+    inviter.credits += 1
     db.commit()
+
+    # Notify inviter by email
+    body = (
+        f"Greetings! Your invitation code {code} was just used by a new member.\n"
+        f"You have earned 1 credit. Total credits: {inviter.credits}."
+    )
+    await send_email("Your invitation was accepted!", inviter.email, body)
+    return inviter.id
